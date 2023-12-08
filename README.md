@@ -1,1 +1,11 @@
-Code for Risk Prediction Simulations
+## Code for Risk Prediction Simulations
+
+This package contains R functions and code for developing our risk prediction
+scheme. 
+
+Install via `remotes::install_github("preliminary_explorations.Rmd", build_vignettes = TRUE)`. 
+The only R function so far is called `create_data()`. See the vignette
+`vignette(package = "RiskPredictionSims")`
+
+
+

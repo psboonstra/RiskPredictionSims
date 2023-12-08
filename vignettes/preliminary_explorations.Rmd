@@ -1,0 +1,96 @@
+---
+title: "Preliminary Exploration"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{preliminary_exploration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message = F, warning = F}
+#library(RiskPredictionSims)
+devtools::load_all()
+library(lme4)
+library(tidyverse)
+library(mnormt)
+```
+
+The `create_data` function creates outcomes from the following model:
+
+$$
+\begin{aligned}
+\Pr(Y_{ijt}=1) = \left(1+\exp\{-(\alpha + \beta x_{ijt} + \gamma_j + \omega_{jt})\}\right)^{-1}
+\end{aligned}
+$$
+
+where $t=1,\ldots, T$ indexes time, $j=1,\ldots, J$ indexes centers, and $i=1,\ldots,n_{jt}$ indexes
+runs, i.e. observations, within a center in a given year. The generating mechanism
+has the following features:
+
+* $T$ and $J$ are specified by `num_years` and `max_num_centers`, respectively
+* $\alpha$ and $\beta$ are specified by `alpha` and `beta`, respectively
+* $x_{ijt} \sim N(0,1)$ independently for $i$, $j$, and $t$
+* $\gamma_j\sim N(0, \tau^2_\gamma)$ independently for each $j$, where $\tau^2_\gamma$ is
+specified by `gamma_var` 
+* $\{\omega_{j1},\omega_{j2},\ldots\} \sim MVN(0, \tau^2_\omega \Sigma_\omega)$, 
+independently for each $j$, where $\tau^2_\omega$ is specified by `omega_var` and
+$\Sigma_\omega$ is an AR(1) matrix with 1s along the diagonal and correlation parameter
+specified by `omega_cor`
+* $n_{jt}|\lambda_j \sim \textrm{Pois}(\lambda_j)$ independently (conditional on $\lambda_j$)
+for each $j$ and $t$. $\lambda_j$ can be specified by `mean_runs_per_center` or
+if not provided it will be drawn from a shifted-folded-$t$ distribution, independently
+for each $j$, to create skewness in the number of runs per center
+
+Below we create a dataset using its default values (see function for default values). 
+```{r}
+data1 <- create_data()
+```
+
+Fit a generalized linear mixed effects models with year-center random effects. 
+```{r}
+mod_data1 <-
+  glmer(y ~ x + (1|year_id:center_id), family = "binomial", data = data1)
+```
+Now extract the BLUPS and join with the simulated data to facilitate comparisons.
+
+```{r}
+summary_mod_data1 <- 
+  ranef(mod_data1)$`year_id:center_id` %>% 
+  rownames_to_column() %>%
+  separate(rowname,into = c("year_id", "center_id")) %>%
+  rename("estimated_raneff" = "(Intercept)") %>%
+  mutate(year_id = as.integer(year_id), 
+         center_id = as.integer(center_id)) %>%
+  left_join(data1 %>% 
+              group_by(center_id, year_id) %>% 
+              summarize(num_runs = n(),
+                        true_raneff = mean(true_raneff),
+                        .groups = "drop"),
+            by = c("year_id", "center_id")) %>%
+  mutate(num_runs_cat = cut(num_runs, breaks = c(0, 1, 4, 20, Inf))) %>%
+  group_by(num_runs_cat) %>%
+  mutate(sp_cor = round(cor(true_raneff, estimated_raneff, method = "spearman"), 3)) %>%
+  ungroup()
+```
+
+How do the estimated random effects compare to the true random effects for each
+center and year:
+```{r, message = FALSE, fig.width = 7, fig.height = 5}
+ggplot(summary_mod_data1, 
+       aes(x = true_raneff, y = estimated_raneff)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_abline(slope = 1, intercept = 0) + 
+  geom_text(data = distinct(summary_mod_data1, num_runs_cat, .keep_all = TRUE),
+            aes(x = -1.5, y = 0.75, label = sp_cor)) + 
+  facet_wrap(vars(num_runs_cat))
+
+```
+
