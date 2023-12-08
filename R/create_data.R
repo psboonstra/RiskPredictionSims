@@ -38,8 +38,10 @@ create_data <- function(num_years = 5,
                         omega_var = 0.15^2,
                         omega_cor = 0.9,
                         beta = 1,
-                        mean_runs_per_center = NULL) {
+                        mean_runs_per_center = NULL,
+                        seed = sample(.Machine$integer.max, 1)) {
 
+  set.seed(seed)
   if(!is.null(mean_runs_per_center)) {
     stopifnot(length(mean_runs_per_center) == max_num_centers)
   } else {

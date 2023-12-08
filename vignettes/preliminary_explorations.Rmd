@@ -50,7 +50,7 @@ for each $j$, to create skewness in the number of runs per center
 
 Below we create a dataset using its default values (see function for default values). 
 ```{r}
-data1 <- create_data()
+data1 <- create_data(seed = 1)
 ```
 
 Fit a generalized linear mixed effects models with year-center random effects. 
@@ -89,7 +89,7 @@ ggplot(summary_mod_data1,
   geom_smooth(method = "lm") +
   geom_abline(slope = 1, intercept = 0) + 
   geom_text(data = distinct(summary_mod_data1, num_runs_cat, .keep_all = TRUE),
-            aes(x = -1.5, y = 0.75, label = sp_cor)) + 
+            aes(x = -1.25, y = 0.75, label = sp_cor)) + 
   facet_wrap(vars(num_runs_cat))
 
 ```
