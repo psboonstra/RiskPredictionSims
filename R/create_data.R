@@ -22,14 +22,15 @@
 #'   is created from a shifted half-t distribution to mimic right-skewness, i.e.
 #'   many centers with small numbers of runs. (double, vector, positive)
 #'
-#' @return
+#' @return A data.frame
 #' @export
 #'
 #' @importFrom mnormt rmnorm
 #' @importFrom purrr map2
+#' @importFrom stats rt rpois rnorm plogis rbinom
 #'
 #'
-#' @examples
+#' @examples create_data()
 create_data <- function(num_years = 5,
                         max_num_centers = 400,
                         alpha = -1.75,
