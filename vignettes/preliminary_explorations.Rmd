@@ -2,7 +2,7 @@
 title: "Preliminary Exploration"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{preliminary_exploration}
+  %\VignetteIndexEntry{Preliminary Exploration}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
