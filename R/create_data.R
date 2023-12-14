@@ -20,7 +20,8 @@
 #'   number of runs from each center from each year will be independently
 #'   generated from a Poisson distribution with this mean. If not provided, this
 #'   is created from a shifted half-t distribution to mimic right-skewness, i.e.
-#'   many centers with small numbers of runs. (double, vector, positive)
+#'   many centers with small numbers of runs (double, vector, positive)
+#' @param seed Random seed for reproducibility (integer, scalar, positive)
 #'
 #' @return A data.frame
 #' @export
